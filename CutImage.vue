@@ -360,7 +360,7 @@ export default {
     },
     // 提交剪切好的图片
     upClipImg () {
-      console.log('ok')
+      console.log('此处编辑你获取canvas中截取的数据,根据你的需求进行操作即可')
     }
   }
 }
