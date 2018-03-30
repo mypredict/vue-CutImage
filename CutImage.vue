@@ -344,7 +344,8 @@ export default {
       }
     },
     upClipImg () {
-      console.log('此处编辑你获取canvas中截取的数据,根据你的需求进行操作即可')
+      let dataURL = this.rightCanvas.toDataURL('image/jpeg', 0.95)
+      console.log(dataURL+'此处编辑你获取canvas中截取的数据,根据你的需求进行操作即可')
     }
   }
 }
