@@ -382,7 +382,9 @@ export default {
     },
     // 提交剪切好的图片
     upClipImg () {
-      console.log('ok')
+      // 进行一个0.95左右的压缩,否则会很大(自行查找)
+      let dataURL = this.rightCanvas.toDataURL('image/jpeg', 0.95)
+      console.log(dataURL+'编辑你拿到的数据')
     }
   }
 }
