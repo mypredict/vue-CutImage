@@ -112,6 +112,15 @@ export default {
       window.removeEventListener('DOMMouseScroll', this.DOMMouseScrollEvent)
     })
   },
+  destroyed () {
+    this.imgBoard.removeEventListener('drop', this.dropEvent)
+    window.removeEventListener('mousedown', this.mousedownEvent)
+    window.removeEventListener('click', this.clickEvent)
+    window.removeEventListener('mousemove', this.mousemoveEvent)
+    window.removeEventListener('mouseup', this.mouseupEvent)
+    window.removeEventListener('mousewheel', this.mousewheelEvent)
+    window.removeEventListener('DOMMouseScroll', this.DOMMouseScrollEvent)
+  },
   methods: {
     focusInput () {
       document.getElementsByClassName('shade-floor')[0].style.display = 'block'
