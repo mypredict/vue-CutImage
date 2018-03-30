@@ -109,7 +109,11 @@ export default {
         e.preventDefault()
         this.fromDrag = true
         this.fromDragImg = e.dataTransfer.files[0]
-        this.uploadSuccess()
+        if (this.fromDragImg.type.indexOf('image/') === 0) {
+          this.uploadSuccess()
+        } else {
+          alert('请上传正确的图片!!!')
+        }
       })
       window.addEventListener('mousedown', (e) => {
         // 滑块 鼠标按下时
