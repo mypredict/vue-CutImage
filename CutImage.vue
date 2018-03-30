@@ -103,149 +103,13 @@ export default {
   },
   mounted () {
     this.$nextTick(() => {
-      this.imgBoard.addEventListener('drop', (e) => {
-        e.preventDefault()
-        this.fromDrag = true
-        this.fromDragImg = e.dataTransfer.files[0]
-        if (this.fromDragImg.type.indexOf('image/') === 0) {
-          this.uploadSuccess()
-        } else {
-          alert('请上传正确的图片!!!')
-        }
-      })
-      window.addEventListener('mousedown', (e) => {
-        if (e.target === this.slideBlock && this.isHaveImg) {
-          this.isSlideMousedown = true
-          this.mouseX = e.clientX
-        }
-        if (e.target === this.theCanvas && this.isHaveImg) {
-          this.isMousedown = true
-          this.mouseX = e.clientX
-          this.mouseY = e.clientY
-        }
-      })
-      window.addEventListener('click', (e) => {
-        if (e.target === this.slideLine && this.isHaveImg) {
-          let useMinLeft = this.theImg.width
-          let useMinTop = this.theImg.height
-          let theDistance = e.offsetX - this.slideFirstX
-          this.slideFirstX = e.offsetX
-          this.slideBlock.style.left = e.offsetX + 'px'
-          this.theImg.width = this.firstImgWidth += theDistance
-          this.theImg.height = this.theImg.width / this.imgWH
-          if (Math.min(this.theImg.width, this.theImg.height) > 400) {
-            this.imgMoveLeft = this.imgMoveX -= theDistance / 2
-            this.imgMoveTop = this.imgMoveY -= theDistance / 2 / this.imgWH
-          } else {
-            if (this.imgWH > 1) {
-              this.imgMoveTop = this.imgMoveY -= (400 - useMinTop) / 2
-              this.imgMoveLeft = this.imgMoveX -= (400 - useMinTop) / 2 * this.imgWH
-              this.theImg.height = this.firstImgHeight = 400
-              this.theImg.width = this.firstImgWidth = 400 * this.imgWH
-            } else {
-              this.imgMoveLeft = this.imgMoveX -= (400 - useMinLeft) / 2
-              this.imgMoveTop = this.imgMoveY -= (400 - useMinLeft) / 2 / this.imgWH
-              this.theImg.width = this.firstImgWidth = 400
-              this.theImg.height = this.firstImgHeight = 400 / this.imgWH
-            }
-          }
-          this.redrawImage()
-        }
-      })
-      window.addEventListener('mousemove', (e) => {
-        if (this.isMousedown) {
-          this.imgMoveLeft = this.imgMoveX + (e.clientX - this.mouseX) * 2
-          this.imgMoveTop = this.imgMoveY + (e.clientY - this.mouseY) * 2
-          if (this.imgMoveLeft < -this.theImg.width) {
-            this.imgMoveLeft = -this.theImg.width
-          }
-          if (this.imgMoveLeft > this.canvasWidth) {
-            this.imgMoveLeft = this.canvasWidth
-          }
-          if (this.imgMoveTop < -this.theImg.height) {
-            this.imgMoveTop = -this.theImg.height
-          }
-          if (this.imgMoveTop > this.canvasHeight) {
-            this.imgMoveTop = this.canvasHeight
-          }
-          this.redrawImage()
-        }
-        if (this.isSlideMousedown) {
-          let slideMoveX = e.clientX - this.mouseX
-          this.slideFinalX = this.slideFirstX + slideMoveX
-          if (this.slideFinalX < 0) {
-            this.slideFinalX = 0
-          }
-          if (this.slideFinalX > this.lineBlockWidth) {
-            this.slideFinalX = this.lineBlockWidth
-          }
-          this.slideBlock.style.left = this.slideFinalX + 'px'
-          this.theImg.width = this.firstImgWidth + slideMoveX
-          this.theImg.height = this.theImg.width / this.imgWH
-          if (Math.min(this.theImg.width, this.theImg.height) < 400) {
-            if (this.imgWH > 1) {
-              this.theImg.height = 400
-              this.theImg.width = 400 * this.imgWH
-            } else {
-              this.theImg.width = 400
-              this.theImg.height = 400 / this.imgWH
-            }
-          } else {
-            this.imgMoveLeft = this.imgMoveX - slideMoveX / 2
-            this.imgMoveTop = this.imgMoveY - slideMoveX / 2 / this.imgWH
-          }
-          this.redrawImage()
-        }
-      })
-      window.addEventListener('mouseup', () => {
-        if (this.isHaveImg) {
-          this.isMousedown = false
-          this.imgMoveX = this.imgMoveLeft
-          this.imgMoveY = this.imgMoveTop
-          if (this.isSlideMousedown) {
-            this.isSlideMousedown = false
-            this.slideFirstX = this.slideFinalX
-            this.firstImgWidth = this.theImg.width
-            this.firstImgHeight = this.theImg.height
-          }
-        }
-      })
-      window.addEventListener('mousewheel', (e) => {
-        if (this.isMoveInCanvas) {
-          e = e || window.event
-          e.preventDefault()
-          this.theImg.width += e.wheelDelta / 10
-          this.theImg.height = this.theImg.width / this.imgWH
-          if (Math.min(this.theImg.width, this.theImg.height) > 400 || e.wheelDelta > 0) {
-            this.imgMoveX = this.imgMoveLeft -= e.wheelDelta / 20
-            this.imgMoveY = this.imgMoveTop -= e.wheelDelta / 20 / this.imgWH
-            this.firstImgWidth = this.theImg.width
-          } else {
-            this.theImg.width -= e.wheelDelta / 10
-            this.theImg.height = this.theImg.width / this.imgWH
-            this.firstImgWidth = this.theImg.width
-          }
-          this.redrawImage()
-        }
-      }, false)
-      window.addEventListener('DOMMouseScroll', (e) => {
-        if (this.isMoveInCanvas) {
-          e = e || window.event
-          e.preventDefault()
-          this.theImg.width -= e.detail * 4
-          this.theImg.height = this.theImg.width / this.imgWH
-          if (Math.min(this.theImg.width, this.theImg.height) >= 400 || e.detail < 0) {
-            this.imgMoveX = this.imgMoveLeft += e.detail * 2
-            this.imgMoveY = this.imgMoveTop += e.detail * 2 / this.imgWH
-            this.firstImgWidth = this.theImg.width
-          } else {
-            this.theImg.width += e.detail * 4
-            this.theImg.height = this.theImg.width / this.imgWH
-            this.firstImgWidth = this.theImg.width
-          }
-          this.redrawImage()
-        }
-      }, false)
+      this.imgBoard.removeEventListener('drop', this.dropEvent)
+      window.removeEventListener('mousedown', this.mousedownEvent)
+      window.removeEventListener('click', this.clickEvent)
+      window.removeEventListener('mousemove', this.mousemoveEvent)
+      window.removeEventListener('mouseup', this.mouseupEvent)
+      window.removeEventListener('mousewheel', this.mousewheelEvent)
+      window.removeEventListener('DOMMouseScroll', this.DOMMouseScrollEvent)
     })
   },
   methods: {
@@ -326,6 +190,149 @@ export default {
       this.canvasCtx.clip()
       this.canvasCtx.drawImage(this.theImg, this.imgMoveLeft, this.imgMoveTop, this.theImg.width, this.theImg.height)
       this.canvasCtx.restore()
+    },
+    dropEvent (e) {
+      e.preventDefault()
+      this.fromDrag = true
+      this.fromDragImg = e.dataTransfer.files[0]
+      if (this.fromDragImg.type.indexOf('image/') === 0) {
+        this.uploadSuccess()
+      } else {
+        alert('请上传正确的图片!!!')
+      }
+    },
+    mousedownEvent (e) {
+      if (e.target === this.slideBlock && this.isHaveImg) {
+        this.isSlideMousedown = true
+        this.mouseX = e.clientX
+      }
+      if (e.target === this.theCanvas && this.isHaveImg) {
+        this.isMousedown = true
+        this.mouseX = e.clientX
+        this.mouseY = e.clientY
+      }
+    },
+    clickEvent (e) {
+      if (e.target === this.slideLine && this.isHaveImg) {
+        let useMinLeft = this.theImg.width
+        let useMinTop = this.theImg.height
+        let theDistance = e.offsetX - this.slideFirstX
+        this.slideFirstX = e.offsetX
+        this.slideBlock.style.left = e.offsetX + 'px'
+        this.theImg.width = this.firstImgWidth += theDistance
+        this.theImg.height = this.theImg.width / this.imgWH
+        if (Math.min(this.theImg.width, this.theImg.height) > 400) {
+          this.imgMoveLeft = this.imgMoveX -= theDistance / 2
+          this.imgMoveTop = this.imgMoveY -= theDistance / 2 / this.imgWH
+        } else {
+          if (this.imgWH > 1) {
+            this.imgMoveTop = this.imgMoveY -= (400 - useMinTop) / 2
+            this.imgMoveLeft = this.imgMoveX -= (400 - useMinTop) / 2 * this.imgWH
+            this.theImg.height = this.firstImgHeight = 400
+            this.theImg.width = this.firstImgWidth = 400 * this.imgWH
+          } else {
+            this.imgMoveLeft = this.imgMoveX -= (400 - useMinLeft) / 2
+            this.imgMoveTop = this.imgMoveY -= (400 - useMinLeft) / 2 / this.imgWH
+            this.theImg.width = this.firstImgWidth = 400
+            this.theImg.height = this.firstImgHeight = 400 / this.imgWH
+          }
+        }
+        this.redrawImage()
+      }
+    },
+    mousemoveEvent (e) {
+      if (this.isMousedown) {
+        this.imgMoveLeft = this.imgMoveX + (e.clientX - this.mouseX) * 2
+        this.imgMoveTop = this.imgMoveY + (e.clientY - this.mouseY) * 2
+        if (this.imgMoveLeft < -this.theImg.width) {
+          this.imgMoveLeft = -this.theImg.width
+        }
+        if (this.imgMoveLeft > this.canvasWidth) {
+          this.imgMoveLeft = this.canvasWidth
+        }
+        if (this.imgMoveTop < -this.theImg.height) {
+          this.imgMoveTop = -this.theImg.height
+        }
+        if (this.imgMoveTop > this.canvasHeight) {
+          this.imgMoveTop = this.canvasHeight
+        }
+        this.redrawImage()
+      }
+      if (this.isSlideMousedown) {
+        let slideMoveX = e.clientX - this.mouseX
+        this.slideFinalX = this.slideFirstX + slideMoveX
+        if (this.slideFinalX < 0) {
+          this.slideFinalX = 0
+        }
+        if (this.slideFinalX > this.lineBlockWidth) {
+          this.slideFinalX = this.lineBlockWidth
+        }
+        this.slideBlock.style.left = this.slideFinalX + 'px'
+        this.theImg.width = this.firstImgWidth + slideMoveX
+        this.theImg.height = this.theImg.width / this.imgWH
+        if (Math.min(this.theImg.width, this.theImg.height) < 400) {
+          if (this.imgWH > 1) {
+            this.theImg.height = 400
+            this.theImg.width = 400 * this.imgWH
+          } else {
+            this.theImg.width = 400
+            this.theImg.height = 400 / this.imgWH
+          }
+        } else {
+          this.imgMoveLeft = this.imgMoveX - slideMoveX / 2
+          this.imgMoveTop = this.imgMoveY - slideMoveX / 2 / this.imgWH
+        }
+        this.redrawImage()
+      }
+    },
+    mouseupEvent (e) {
+      if (this.isHaveImg) {
+        this.isMousedown = false
+        this.imgMoveX = this.imgMoveLeft
+        this.imgMoveY = this.imgMoveTop
+        if (this.isSlideMousedown) {
+          this.isSlideMousedown = false
+          this.slideFirstX = this.slideFinalX
+          this.firstImgWidth = this.theImg.width
+          this.firstImgHeight = this.theImg.height
+        }
+      }
+    },
+    mousewheelEvent (e) {
+      if (this.isMoveInCanvas) {
+        e = e || window.event
+        e.preventDefault()
+        this.theImg.width += e.wheelDelta / 10
+        this.theImg.height = this.theImg.width / this.imgWH
+        if (Math.min(this.theImg.width, this.theImg.height) > 400 || e.wheelDelta > 0) {
+          this.imgMoveX = this.imgMoveLeft -= e.wheelDelta / 20
+          this.imgMoveY = this.imgMoveTop -= e.wheelDelta / 20 / this.imgWH
+          this.firstImgWidth = this.theImg.width
+        } else {
+          this.theImg.width -= e.wheelDelta / 10
+          this.theImg.height = this.theImg.width / this.imgWH
+          this.firstImgWidth = this.theImg.width
+        }
+        this.redrawImage()
+      }
+    },
+    DOMMouseScrollEvent (e) {
+      if (this.isMoveInCanvas) {
+        e = e || window.event
+        e.preventDefault()
+        this.theImg.width -= e.detail * 4
+        this.theImg.height = this.theImg.width / this.imgWH
+        if (Math.min(this.theImg.width, this.theImg.height) >= 400 || e.detail < 0) {
+          this.imgMoveX = this.imgMoveLeft += e.detail * 2
+          this.imgMoveY = this.imgMoveTop += e.detail * 2 / this.imgWH
+          this.firstImgWidth = this.theImg.width
+        } else {
+          this.theImg.width += e.detail * 4
+          this.theImg.height = this.theImg.width / this.imgWH
+          this.firstImgWidth = this.theImg.width
+        }
+        this.redrawImage()
+      }
     },
     upClipImg () {
       console.log('此处编辑你获取canvas中截取的数据,根据你的需求进行操作即可')
