@@ -103,13 +103,13 @@ export default {
   },
   mounted () {
     this.$nextTick(() => {
-      this.imgBoard.removeEventListener('drop', this.dropEvent)
-      window.removeEventListener('mousedown', this.mousedownEvent)
-      window.removeEventListener('click', this.clickEvent)
-      window.removeEventListener('mousemove', this.mousemoveEvent)
-      window.removeEventListener('mouseup', this.mouseupEvent)
-      window.removeEventListener('mousewheel', this.mousewheelEvent)
-      window.removeEventListener('DOMMouseScroll', this.DOMMouseScrollEvent)
+      this.imgBoard.addEventListener('drop', this.dropEvent)
+      window.addEventListener('mousedown', this.mousedownEvent)
+      window.addEventListener('click', this.clickEvent)
+      window.addEventListener('mousemove', this.mousemoveEvent)
+      window.addEventListener('mouseup', this.mouseupEvent)
+      window.addEventListener('mousewheel', this.mousewheelEvent, false)
+      window.addEventListener('DOMMouseScroll', this.DOMMouseScrollEvent, false)
     })
   },
   destroyed () {
