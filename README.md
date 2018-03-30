@@ -11,36 +11,26 @@
 3. 提交时在提交的方法中写自己所需要提交的形式
 ## 看一下源码,大部分都已经注释了
 ```
-<template>
-  <div class="cut-board">
-    <div class="left-cut-board">
-      <div class="img-board" @mouseenter="listenMousewheel" @mouseleave="removeMousewheel" @dragover="allowDrop">
-        <canvas id="canvas-clip"></canvas>
-      </div>
-      <div class="img-option">
-        <div class="upload-button">
-          <span class="upload-img" @click="focusInput">上传</span>
-          <input id="taggle-img" type="file" accept="image/*" @change="uploadSuccess">
-        </div>
-        <div class="control-size">
-          <span>~</span>
-          <div class="slide-line">
-            <div class="slide-block"></div>
-          </div>
-          <span>+</span>
-        </div>
-      </div>
-    </div>
-    <div class="right-show-board">
-      <div class="close-cut-board"></div>
-      <div class="show-board">
-        <canvas id="right-canvas" width="400" height="400">你的浏览器过于老旧无法实现canvas</canvas>
-      </div>
-      <div class="submit-buttons">
-        <span class="submit-img" @click="upClipImg">提交</span>
-      </div>
-    </div>
-  </div>
+<template lang="pug">
+  div.cut-board
+    div.left-cut-board
+      div.img-board(@mouseenter="listenMousewheel", @mouseleave="removeMousewheel", @dragover="allowDrop")
+        canvas#canvas-clip
+      div.img-option
+        div.upload-button
+          span.upload-img(@click="focusInput") 上传
+          input#taggle-img(type="file", accept="image/*", @change="uploadSuccess")
+        div.control-size
+          span ~
+          div.slide-line
+            div.slide-block
+          span +
+    div.right-show-board
+      div.close-cut-board
+      div.show-board
+        canvas#right-canvas(width="400", height="400") 你的浏览器过于老旧无法实现canvas
+      div.submit-button
+        span.submit-img(@click="upClipImg") 提交
 </template>
 
 <script type="text/javascript">
@@ -104,7 +94,6 @@ export default {
     slideBlock () {
       return document.getElementsByClassName('slide-block')[0]
     },
-    // 划线减去滑块的宽度, 防止划出
     lineBlockWidth () {
       return this.slideLine.clientWidth - this.slideBlock.clientWidth
     },
@@ -117,165 +106,23 @@ export default {
   },
   mounted () {
     this.$nextTick(() => {
-      // 监听拖进图片
-      this.imgBoard.addEventListener('drop', (e) => {
-        e.preventDefault()
-        this.fromDrag = true
-        this.fromDragImg = e.dataTransfer.files[0]
-        if (this.fromDragImg.type.indexOf('image/') === 0) {
-          this.uploadSuccess()
-        } else {
-          alert('请上传正确的图片!!!')
-        }
-      })
-      window.addEventListener('mousedown', (e) => {
-        // 滑块 鼠标按下时
-        if (e.target === this.slideBlock && this.isHaveImg) {
-          this.isSlideMousedown = true
-          this.mouseX = e.clientX
-        }
-        // canvas 鼠标按下时
-        if (e.target === this.theCanvas && this.isHaveImg) {
-          this.isMousedown = true
-          this.mouseX = e.clientX
-          this.mouseY = e.clientY
-        }
-      })
-      window.addEventListener('click', (e) => {
-        // 监听点击滑线的位置
-        if (e.target === this.slideLine && this.isHaveImg) {
-          let useMinLeft = this.theImg.width
-          let useMinTop = this.theImg.height
-          let theDistance = e.offsetX - this.slideFirstX
-          this.slideFirstX = e.offsetX
-          this.slideBlock.style.left = e.offsetX + 'px'
-          this.theImg.width = this.firstImgWidth += theDistance
-          this.theImg.height = this.theImg.width / this.imgWH
-          if (Math.min(this.theImg.width, this.theImg.height) > 400) {
-            this.imgMoveLeft = this.imgMoveX -= theDistance / 2 // 同步图片起始位置
-            this.imgMoveTop = this.imgMoveY -= theDistance / 2 / this.imgWH
-          } else {
-            if (this.imgWH > 1) {
-              this.imgMoveTop = this.imgMoveY -= (400 - useMinTop) / 2
-              this.imgMoveLeft = this.imgMoveX -= (400 - useMinTop) / 2 * this.imgWH
-              this.theImg.height = this.firstImgHeight = 400
-              this.theImg.width = this.firstImgWidth = 400 * this.imgWH
-            } else {
-              this.imgMoveLeft = this.imgMoveX -= (400 - useMinLeft) / 2
-              this.imgMoveTop = this.imgMoveY -= (400 - useMinLeft) / 2 / this.imgWH
-              this.theImg.width = this.firstImgWidth = 400
-              this.theImg.height = this.firstImgHeight = 400 / this.imgWH
-            }
-          }
-          this.redrawImage()
-        }
-      })
-      // 监听鼠标的移动
-      window.addEventListener('mousemove', (e) => {
-        // 监听图片的移动
-        if (this.isMousedown) {
-          this.imgMoveLeft = this.imgMoveX + (e.clientX - this.mouseX) * 2
-          this.imgMoveTop = this.imgMoveY + (e.clientY - this.mouseY) * 2
-          // 拖动时的边界问题
-          if (this.imgMoveLeft < -this.theImg.width) {
-            this.imgMoveLeft = -this.theImg.width
-          }
-          if (this.imgMoveLeft > this.canvasWidth) {
-            this.imgMoveLeft = this.canvasWidth
-          }
-          if (this.imgMoveTop < -this.theImg.height) {
-            this.imgMoveTop = -this.theImg.height
-          }
-          if (this.imgMoveTop > this.canvasHeight) {
-            this.imgMoveTop = this.canvasHeight
-          }
-          this.redrawImage()
-        }
-        // 监听滑块的移动
-        if (this.isSlideMousedown) {
-          // 监听鼠标的横坐标位移
-          let slideMoveX = e.clientX - this.mouseX
-          this.slideFinalX = this.slideFirstX + slideMoveX
-          if (this.slideFinalX < 0) {
-            this.slideFinalX = 0
-          }
-          if (this.slideFinalX > this.lineBlockWidth) {
-            this.slideFinalX = this.lineBlockWidth
-          }
-          this.slideBlock.style.left = this.slideFinalX + 'px'
-          this.theImg.width = this.firstImgWidth + slideMoveX
-          this.theImg.height = this.theImg.width / this.imgWH
-          if (Math.min(this.theImg.width, this.theImg.height) < 400) {
-            if (this.imgWH > 1) {
-              this.theImg.height = 400
-              this.theImg.width = 400 * this.imgWH
-            } else {
-              this.theImg.width = 400
-              this.theImg.height = 400 / this.imgWH
-            }
-          } else {
-            this.imgMoveLeft = this.imgMoveX - slideMoveX / 2 // 同步图片起始位置
-            this.imgMoveTop = this.imgMoveY - slideMoveX / 2 / this.imgWH
-          }
-          this.redrawImage()
-        }
-      })
-      // 监听鼠标抬起
-      window.addEventListener('mouseup', () => {
-        if (this.isHaveImg) {
-          // canvas 鼠标抬起时记录值
-          this.isMousedown = false
-          this.imgMoveX = this.imgMoveLeft
-          this.imgMoveY = this.imgMoveTop
-          // 滑块鼠标抬起时记录值
-          if (this.isSlideMousedown) {
-            this.isSlideMousedown = false
-            this.slideFirstX = this.slideFinalX
-            this.firstImgWidth = this.theImg.width
-            this.firstImgHeight = this.theImg.height
-          }
-        }
-      })
-      // 监听鼠标滚轮滚动
-      window.addEventListener('mousewheel', (e) => {
-        if (this.isMoveInCanvas) {
-          e = e || window.event
-          e.preventDefault()
-          this.theImg.width += e.wheelDelta / 10
-          this.theImg.height = this.theImg.width / this.imgWH
-          // 图片缩放最小宽高
-          if (Math.min(this.theImg.width, this.theImg.height) > 400 || e.wheelDelta > 0) {
-            this.imgMoveX = this.imgMoveLeft -= e.wheelDelta / 20 // 同步图片起始位置
-            this.imgMoveY = this.imgMoveTop -= e.wheelDelta / 20 / this.imgWH
-            this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
-          } else {
-            this.theImg.width -= e.wheelDelta / 10
-            this.theImg.height = this.theImg.width / this.imgWH
-            this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
-          }
-          this.redrawImage()
-        }
-      }, false)
-      // 兼容火狐浏览器
-      window.addEventListener('DOMMouseScroll', (e) => {
-        if (this.isMoveInCanvas) {
-          e = e || window.event
-          e.preventDefault()
-          this.theImg.width -= e.detail * 4
-          this.theImg.height = this.theImg.width / this.imgWH
-          if (Math.min(this.theImg.width, this.theImg.height) >= 400 || e.detail < 0) {
-            this.imgMoveX = this.imgMoveLeft += e.detail * 2 // 同步图片起始位置
-            this.imgMoveY = this.imgMoveTop += e.detail * 2 / this.imgWH
-            this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
-          } else {
-            this.theImg.width += e.detail * 4
-            this.theImg.height = this.theImg.width / this.imgWH
-            this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
-          }
-          this.redrawImage()
-        }
-      }, false)
+      this.imgBoard.addEventListener('drop', this.dropEvent)
+      window.addEventListener('mousedown', this.mousedownEvent)
+      window.addEventListener('click', this.clickEvent)
+      window.addEventListener('mousemove', this.mousemoveEvent)
+      window.addEventListener('mouseup', this.mouseupEvent)
+      window.addEventListener('mousewheel', this.mousewheelEvent, false)
+      window.addEventListener('DOMMouseScroll', this.DOMMouseScrollEvent, false)
     })
+  },
+  destroyed () {
+    this.imgBoard.removeEventListener('drop', this.dropEvent)
+    window.removeEventListener('mousedown', this.mousedownEvent)
+    window.removeEventListener('click', this.clickEvent)
+    window.removeEventListener('mousemove', this.mousemoveEvent)
+    window.removeEventListener('mouseup', this.mouseupEvent)
+    window.removeEventListener('mousewheel', this.mousewheelEvent)
+    window.removeEventListener('DOMMouseScroll', this.DOMMouseScrollEvent)
   },
   methods: {
     // 触发上传时隐藏的input
@@ -375,9 +222,167 @@ export default {
       this.canvasCtx.drawImage(this.theImg, this.imgMoveLeft, this.imgMoveTop, this.theImg.width, this.theImg.height)
       this.canvasCtx.restore()
     },
+    // 监听拖进图片
+    dropEvent (e) {
+      e.preventDefault()
+      this.fromDrag = true
+      this.fromDragImg = e.dataTransfer.files[0]
+      if (this.fromDragImg.type.indexOf('image/') === 0) {
+        this.uploadSuccess()
+      } else {
+        alert('请上传正确的图片!!!')
+      }
+    },
+    mousedownEvent (e) {
+      // 滑块 鼠标按下时
+      if (e.target === this.slideBlock && this.isHaveImg) {
+        this.isSlideMousedown = true
+        this.mouseX = e.clientX
+      }
+      // canvas 鼠标按下时
+      if (e.target === this.theCanvas && this.isHaveImg) {
+        this.isMousedown = true
+        this.mouseX = e.clientX
+        this.mouseY = e.clientY
+      }
+    },
+    clickEvent (e) {
+      // 监听点击滑线的位置
+      if (e.target === this.slideLine && this.isHaveImg) {
+        let useMinLeft = this.theImg.width
+        let useMinTop = this.theImg.height
+        let theDistance = e.offsetX - this.slideFirstX
+        this.slideFirstX = e.offsetX
+        this.slideBlock.style.left = e.offsetX + 'px'
+        this.theImg.width = this.firstImgWidth += theDistance
+        this.theImg.height = this.theImg.width / this.imgWH
+        if (Math.min(this.theImg.width, this.theImg.height) > 400) {
+          this.imgMoveLeft = this.imgMoveX -= theDistance / 2 // 同步图片起始位置
+          this.imgMoveTop = this.imgMoveY -= theDistance / 2 / this.imgWH
+        } else {
+          if (this.imgWH > 1) {
+            this.imgMoveTop = this.imgMoveY -= (400 - useMinTop) / 2
+            this.imgMoveLeft = this.imgMoveX -= (400 - useMinTop) / 2 * this.imgWH
+            this.theImg.height = this.firstImgHeight = 400
+            this.theImg.width = this.firstImgWidth = 400 * this.imgWH
+          } else {
+            this.imgMoveLeft = this.imgMoveX -= (400 - useMinLeft) / 2
+            this.imgMoveTop = this.imgMoveY -= (400 - useMinLeft) / 2 / this.imgWH
+            this.theImg.width = this.firstImgWidth = 400
+            this.theImg.height = this.firstImgHeight = 400 / this.imgWH
+          }
+        }
+        this.redrawImage()
+      }
+    },
+    // 监听鼠标的移动
+    mousemoveEvent (e) {
+      // 监听图片的移动
+      if (this.isMousedown) {
+        this.imgMoveLeft = this.imgMoveX + (e.clientX - this.mouseX) * 2
+        this.imgMoveTop = this.imgMoveY + (e.clientY - this.mouseY) * 2
+        // 拖动时的边界问题
+        if (this.imgMoveLeft < -this.theImg.width) {
+          this.imgMoveLeft = -this.theImg.width
+        }
+        if (this.imgMoveLeft > this.canvasWidth) {
+          this.imgMoveLeft = this.canvasWidth
+        }
+        if (this.imgMoveTop < -this.theImg.height) {
+          this.imgMoveTop = -this.theImg.height
+        }
+        if (this.imgMoveTop > this.canvasHeight) {
+          this.imgMoveTop = this.canvasHeight
+        }
+        this.redrawImage()
+      }
+      // 监听滑块的移动
+      if (this.isSlideMousedown) {
+        // 监听鼠标的横坐标位移
+        let slideMoveX = e.clientX - this.mouseX
+        this.slideFinalX = this.slideFirstX + slideMoveX
+        if (this.slideFinalX < 0) {
+          this.slideFinalX = 0
+        }
+        if (this.slideFinalX > this.lineBlockWidth) {
+          this.slideFinalX = this.lineBlockWidth
+        }
+        this.slideBlock.style.left = this.slideFinalX + 'px'
+        this.theImg.width = this.firstImgWidth + slideMoveX
+        this.theImg.height = this.theImg.width / this.imgWH
+        if (Math.min(this.theImg.width, this.theImg.height) < 400) {
+          if (this.imgWH > 1) {
+            this.theImg.height = 400
+            this.theImg.width = 400 * this.imgWH
+          } else {
+            this.theImg.width = 400
+            this.theImg.height = 400 / this.imgWH
+          }
+        } else {
+          this.imgMoveLeft = this.imgMoveX - slideMoveX / 2 // 同步图片起始位置
+          this.imgMoveTop = this.imgMoveY - slideMoveX / 2 / this.imgWH
+        }
+        this.redrawImage()
+      }
+    },
+    // 监听鼠标抬起
+    mouseupEvent (e) {
+      if (this.isHaveImg) {
+        // canvas 鼠标抬起时记录值
+        this.isMousedown = false
+        this.imgMoveX = this.imgMoveLeft
+        this.imgMoveY = this.imgMoveTop
+        // 滑块鼠标抬起时记录值
+        if (this.isSlideMousedown) {
+          this.isSlideMousedown = false
+          this.slideFirstX = this.slideFinalX
+          this.firstImgWidth = this.theImg.width
+          this.firstImgHeight = this.theImg.height
+        }
+      }
+    },
+    // 监听滚轮滚动
+    mousewheelEvent (e) {
+      if (this.isMoveInCanvas) {
+        e = e || window.event
+        e.preventDefault()
+        this.theImg.width += e.wheelDelta / 10
+        this.theImg.height = this.theImg.width / this.imgWH
+        // 图片缩放最小宽高
+        if (Math.min(this.theImg.width, this.theImg.height) > 400 || e.wheelDelta > 0) {
+          this.imgMoveX = this.imgMoveLeft -= e.wheelDelta / 20 // 同步图片起始位置
+          this.imgMoveY = this.imgMoveTop -= e.wheelDelta / 20 / this.imgWH
+          this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
+        } else {
+          this.theImg.width -= e.wheelDelta / 10
+          this.theImg.height = this.theImg.width / this.imgWH
+          this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
+        }
+        this.redrawImage()
+      }
+    },
+    // 兼容火狐监听滚轮滚动
+    DOMMouseScrollEvent (e) {
+      if (this.isMoveInCanvas) {
+        e = e || window.event
+        e.preventDefault()
+        this.theImg.width -= e.detail * 4
+        this.theImg.height = this.theImg.width / this.imgWH
+        if (Math.min(this.theImg.width, this.theImg.height) >= 400 || e.detail < 0) {
+          this.imgMoveX = this.imgMoveLeft += e.detail * 2 // 同步图片起始位置
+          this.imgMoveY = this.imgMoveTop += e.detail * 2 / this.imgWH
+          this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
+        } else {
+          this.theImg.width += e.detail * 4
+          this.theImg.height = this.theImg.width / this.imgWH
+          this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
+        }
+        this.redrawImage()
+      }
+    },
     // 提交剪切好的图片
     upClipImg () {
-      console.log('此处编辑你获取canvas中截取的数据,根据你的需求进行操作即可')
+      console.log('ok')
     }
   }
 }
@@ -385,6 +390,7 @@ export default {
 
 <style lang="scss" scoped>
 .cut-board {
+  display: none;
   position: fixed;
   width: 52em;
   height: 26em;
@@ -483,7 +489,7 @@ export default {
         box-shadow: 0 0 15px #ddd;
       }
     }
-    .submit-buttons {
+    .submit-button {
       display: flex;
       justify-content: flex-end;
       align-items: center;
