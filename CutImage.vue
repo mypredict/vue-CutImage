@@ -35,26 +35,26 @@ export default {
   name: 'CutImage',
   data () {
     return {
-      theImage: '', // 储存来自不同地方的图片
-      theImg: '', // 储存上传的图片这个对象
-      fromDragImg: '', // 储存来自拖动来的图片
-      fromDrag: false, // 是否来自拖动来的图片
-      isCanvasShow: false, // 让canvas动态赋值一次宽高
-      isHaveImg: false, // 是否存在有图片
-      isMoveInCanvas: false, // 鼠标是否移入canvas
-      isMousedown: false, // canvas 判断鼠标是否按下
-      isSlideMousedown: false, // 滑块判断鼠标是否按下
-      imgWH: 0, // 图片的长宽比(用于第一次显示的长宽)
-      mouseX: 0, // 鼠标按下时的横坐标
-      mouseY: 0, // 鼠标按下时的纵坐标
-      imgMoveLeft: 0, // canvas 图片放置的横坐标位置(从哪开始画)
-      imgMoveTop: 0, // canvas 图片放置的纵坐标的位置
-      imgMoveX: 0, // canvas 记录图片在鼠标抬起时图片的横坐标位置
-      imgMoveY: 0, // canvas 记录图片在鼠标抬起时图片的纵坐标位置
-      slideFirstX: 0, // 鼠标按下时滑块的横坐标
-      slideFinalX: 0, // 鼠标抬起时记录的横坐标
-      firstImgWidth: 0, // 记录滑块操作后图片的宽度
-      firstImgHeight: 0 // 记录滑块操作后图片的高度
+      theImage: '',
+      theImg: '',
+      fromDragImg: '',
+      fromDrag: false,
+      isCanvasShow: false,
+      isHaveImg: false,
+      isMoveInCanvas: false,
+      isMousedown: false,
+      isSlideMousedown: false,
+      imgWH: 0,
+      mouseX: 0,
+      mouseY: 0,
+      imgMoveLeft: 0,
+      imgMoveTop: 0,
+      imgMoveX: 0,
+      imgMoveY: 0,
+      slideFirstX: 0,
+      slideFinalX: 0,
+      firstImgWidth: 0,
+      firstImgHeight: 0
     }
   },
   computed: {
@@ -91,7 +91,6 @@ export default {
     slideBlock () {
       return document.getElementsByClassName('slide-block')[0]
     },
-    // 划线减去滑块的宽度, 防止划出
     lineBlockWidth () {
       return this.slideLine.clientWidth - this.slideBlock.clientWidth
     },
@@ -104,7 +103,6 @@ export default {
   },
   mounted () {
     this.$nextTick(() => {
-      // 监听拖进图片
       this.imgBoard.addEventListener('drop', (e) => {
         e.preventDefault()
         this.fromDrag = true
@@ -116,12 +114,10 @@ export default {
         }
       })
       window.addEventListener('mousedown', (e) => {
-        // 滑块 鼠标按下时
         if (e.target === this.slideBlock && this.isHaveImg) {
           this.isSlideMousedown = true
           this.mouseX = e.clientX
         }
-        // canvas 鼠标按下时
         if (e.target === this.theCanvas && this.isHaveImg) {
           this.isMousedown = true
           this.mouseX = e.clientX
@@ -129,7 +125,6 @@ export default {
         }
       })
       window.addEventListener('click', (e) => {
-        // 监听点击滑线的位置
         if (e.target === this.slideLine && this.isHaveImg) {
           let useMinLeft = this.theImg.width
           let useMinTop = this.theImg.height
@@ -139,7 +134,7 @@ export default {
           this.theImg.width = this.firstImgWidth += theDistance
           this.theImg.height = this.theImg.width / this.imgWH
           if (Math.min(this.theImg.width, this.theImg.height) > 400) {
-            this.imgMoveLeft = this.imgMoveX -= theDistance / 2 // 同步图片起始位置
+            this.imgMoveLeft = this.imgMoveX -= theDistance / 2
             this.imgMoveTop = this.imgMoveY -= theDistance / 2 / this.imgWH
           } else {
             if (this.imgWH > 1) {
@@ -157,13 +152,10 @@ export default {
           this.redrawImage()
         }
       })
-      // 监听鼠标的移动
       window.addEventListener('mousemove', (e) => {
-        // 监听图片的移动
         if (this.isMousedown) {
           this.imgMoveLeft = this.imgMoveX + (e.clientX - this.mouseX) * 2
           this.imgMoveTop = this.imgMoveY + (e.clientY - this.mouseY) * 2
-          // 拖动时的边界问题
           if (this.imgMoveLeft < -this.theImg.width) {
             this.imgMoveLeft = -this.theImg.width
           }
@@ -178,9 +170,7 @@ export default {
           }
           this.redrawImage()
         }
-        // 监听滑块的移动
         if (this.isSlideMousedown) {
-          // 监听鼠标的横坐标位移
           let slideMoveX = e.clientX - this.mouseX
           this.slideFinalX = this.slideFirstX + slideMoveX
           if (this.slideFinalX < 0) {
@@ -201,20 +191,17 @@ export default {
               this.theImg.height = 400 / this.imgWH
             }
           } else {
-            this.imgMoveLeft = this.imgMoveX - slideMoveX / 2 // 同步图片起始位置
+            this.imgMoveLeft = this.imgMoveX - slideMoveX / 2
             this.imgMoveTop = this.imgMoveY - slideMoveX / 2 / this.imgWH
           }
           this.redrawImage()
         }
       })
-      // 监听鼠标抬起
       window.addEventListener('mouseup', () => {
         if (this.isHaveImg) {
-          // canvas 鼠标抬起时记录值
           this.isMousedown = false
           this.imgMoveX = this.imgMoveLeft
           this.imgMoveY = this.imgMoveTop
-          // 滑块鼠标抬起时记录值
           if (this.isSlideMousedown) {
             this.isSlideMousedown = false
             this.slideFirstX = this.slideFinalX
@@ -223,27 +210,24 @@ export default {
           }
         }
       })
-      // 监听鼠标滚轮滚动
       window.addEventListener('mousewheel', (e) => {
         if (this.isMoveInCanvas) {
           e = e || window.event
           e.preventDefault()
           this.theImg.width += e.wheelDelta / 10
           this.theImg.height = this.theImg.width / this.imgWH
-          // 图片缩放最小宽高
           if (Math.min(this.theImg.width, this.theImg.height) > 400 || e.wheelDelta > 0) {
-            this.imgMoveX = this.imgMoveLeft -= e.wheelDelta / 20 // 同步图片起始位置
+            this.imgMoveX = this.imgMoveLeft -= e.wheelDelta / 20
             this.imgMoveY = this.imgMoveTop -= e.wheelDelta / 20 / this.imgWH
-            this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
+            this.firstImgWidth = this.theImg.width
           } else {
             this.theImg.width -= e.wheelDelta / 10
             this.theImg.height = this.theImg.width / this.imgWH
-            this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
+            this.firstImgWidth = this.theImg.width
           }
           this.redrawImage()
         }
       }, false)
-      // 兼容火狐浏览器
       window.addEventListener('DOMMouseScroll', (e) => {
         if (this.isMoveInCanvas) {
           e = e || window.event
@@ -251,13 +235,13 @@ export default {
           this.theImg.width -= e.detail * 4
           this.theImg.height = this.theImg.width / this.imgWH
           if (Math.min(this.theImg.width, this.theImg.height) >= 400 || e.detail < 0) {
-            this.imgMoveX = this.imgMoveLeft += e.detail * 2 // 同步图片起始位置
+            this.imgMoveX = this.imgMoveLeft += e.detail * 2
             this.imgMoveY = this.imgMoveTop += e.detail * 2 / this.imgWH
-            this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
+            this.firstImgWidth = this.theImg.width
           } else {
             this.theImg.width += e.detail * 4
             this.theImg.height = this.theImg.width / this.imgWH
-            this.firstImgWidth = this.theImg.width // 同步滑块的起始图片宽度
+            this.firstImgWidth = this.theImg.width
           }
           this.redrawImage()
         }
@@ -265,26 +249,21 @@ export default {
     })
   },
   methods: {
-    // 触发上传时隐藏的input
     focusInput () {
       document.getElementsByClassName('shade-floor')[0].style.display = 'block'
       document.getElementById('taggle-img').click()
     },
-    // 允许直接拖动桌面图片上传
     allowDrop (e) {
       e.preventDefault()
     },
     uploadSuccess () {
-      // 只赋值一次canvas宽高等于包含元素(这里其实是两倍,用于解决canvas图片不清晰问题)
       if (!this.isCanvasShow) {
         this.isCanvasShow = true
         this.theCanvas.width = this.canvasWidth
         this.theCanvas.height = this.canvasHeight
       }
-      // 第一次打开滑块居中显示
       this.slideFirstX = this.slideLineWidth / 2
       this.slideBlock.style.left = this.slideFirstX + 'px'
-      // H5的 FileReader 读取上传的图片
       if (this.fromDrag) {
         this.theImage = this.fromDragImg
         this.fromDrag = false
@@ -297,72 +276,57 @@ export default {
         this.theImg = new Image()
         this.theImg.src = e.target.result
         this.theImg.onload = () => {
-          // 当更换图片时重置一些东西
           this.isHaveImg = true
-          // 及时清空 input 否则换图时点击取消控制台报错
           document.getElementById('taggle-img').value = null
-          // 重新计算新图片的长宽比
           this.imgWH = this.theImg.width / this.theImg.height
-          // 计算第一次图片的显示大小和位置
           if (this.imgWH >= this.canvasWH) {
             this.theImg.width = this.canvasWidth
             this.theImg.height = this.theImg.width / this.imgWH
-            // 重置图片的起始位置及调动时的起始位置
             this.imgMoveX = this.imgMoveLeft = 0
             this.imgMoveY = this.imgMoveTop = (this.canvasHeight - this.theImg.height) / 2
           } else {
             this.theImg.height = this.canvasHeight
             this.theImg.width = this.theImg.height * this.imgWH
-            // 重置图片的起始位置及调动时的起始位置
             this.imgMoveX = this.imgMoveLeft = (this.canvasWidth - this.theImg.width) / 2
             this.imgMoveY = this.imgMoveTop = 0
           }
-          // 赋值第一次图片拖动时的宽高
           this.firstImgWidth = this.theImg.width
           this.firstImgHeight = this.theImg.height
           this.redrawImage()
         }
       }
     },
-    // 准备监听滑轮的事件
     listenMousewheel (e) {
       if (this.isHaveImg) {
         this.isMoveInCanvas = true
       }
     },
-    // 移出canvas时移除监听滑轮事件
     removeMousewheel () {
       if (this.isHaveImg) {
         this.isMoveInCanvas = false
       }
     },
-    // 每次移动或者操作大小变化时重绘
     redrawImage () {
-      // 清屏左边canvas重绘
       this.canvasCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
       this.canvasCtx.drawImage(this.theImg, this.imgMoveLeft, this.imgMoveTop, this.theImg.width, this.theImg.height)
-      // 画到右边的canvas上
       let imgClipData = this.canvasCtx.getImageData(this.clipLightX, this.clipLightY, 400, 400)
       this.rightCanvasCtx.clearRect(0, 0, 200, 200)
       this.rightCanvasCtx.putImageData(imgClipData, 0, 0)
-      // 加上阴影层
-      this.canvasCtx.save() // 保存第一个图层画上的图片
+      this.canvasCtx.save()
       this.canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.4)'
       this.canvasCtx.fillRect(0, 0, this.canvasWidth, this.canvasHeight)
       this.canvasCtx.rect(this.clipLightX, this.clipLightY, 400, 400)
       this.canvasCtx.fillStyle = 'rgba(255, 255, 255, 10)'
       this.canvasCtx.fill()
       this.canvasCtx.restore()
-      // 高亮显示中间的窗口
       this.canvasCtx.save()
-      this.canvasCtx.beginPath() // 开始一个路径
-      this.canvasCtx.rect(this.clipLightX, this.clipLightY, 400, 400) // 这个路径的路线
-      this.canvasCtx.closePath() // 关闭这个路径
-      this.canvasCtx.clip() // 剪下这块
+      this.canvasCtx.beginPath()
+      this.canvasCtx.rect(this.clipLightX, this.clipLightY, 400, 400)
+      this.canvasCtx.closePath()
+      this.canvasCtx.clip()
       this.canvasCtx.drawImage(this.theImg, this.imgMoveLeft, this.imgMoveTop, this.theImg.width, this.theImg.height)
       this.canvasCtx.restore()
     },
-    // 提交剪切好的图片
     upClipImg () {
       console.log('此处编辑你获取canvas中截取的数据,根据你的需求进行操作即可')
     }
@@ -381,7 +345,7 @@ export default {
   border-radius: 10px;
   overflow: hidden;
   background: #fff;
-  user-select: none; // 很重要,否则会出现拖动bug
+  user-select: none;
   .left-cut-board {
     float: left;
     width: 30em;
