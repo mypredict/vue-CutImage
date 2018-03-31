@@ -27,6 +27,7 @@
           span +
     div.right-show-board
       div.close-cut-board
+        i.iconfont.icon-close1(@click="closeCutBoard")
       div.show-board
         canvas#right-canvas(width="400", height="400") 你的浏览器过于老旧无法实现canvas
       div.submit-button
@@ -41,6 +42,7 @@ export default {
       theImage: '', // 储存来自不同地方的图片
       theImg: '', // 储存上传的图片这个对象
       fromDragImg: '', // 储存来自拖动来的图片
+      isOnlyOne: true, // 用来判断拖动和滚轮滚动在同一时间只能触发一个
       fromDrag: false, // 是否来自拖动来的图片
       isCanvasShow: false, // 让canvas动态赋值一次宽高
       isHaveImg: false, // 是否存在有图片
@@ -235,12 +237,14 @@ export default {
     },
     mousedownEvent (e) {
       // 滑块 鼠标按下时
-      if (e.target === this.slideBlock && this.isHaveImg) {
+      if (e.target === this.slideBlock && this.isHaveImg && this.isOnlyOne) {
+        this.isOnlyOne = false
         this.isSlideMousedown = true
         this.mouseX = e.clientX
       }
       // canvas 鼠标按下时
-      if (e.target === this.theCanvas && this.isHaveImg) {
+      if (e.target === this.theCanvas && this.isHaveImg  && this.isOnlyOne) {
+        this.isOnlyOne = false
         this.isMousedown = true
         this.mouseX = e.clientX
         this.mouseY = e.clientY
@@ -329,21 +333,25 @@ export default {
     mouseupEvent (e) {
       if (this.isHaveImg) {
         // canvas 鼠标抬起时记录值
-        this.isMousedown = false
-        this.imgMoveX = this.imgMoveLeft
-        this.imgMoveY = this.imgMoveTop
+        if (this.isMousedown) {
+          this.isOnlyOne = true
+          this.isMousedown = false
+        }
         // 滑块鼠标抬起时记录值
         if (this.isSlideMousedown) {
+          this.isOnlyOne = true
           this.isSlideMousedown = false
           this.slideFirstX = this.slideFinalX
           this.firstImgWidth = this.theImg.width
           this.firstImgHeight = this.theImg.height
         }
+        this.imgMoveX = this.imgMoveLeft
+        this.imgMoveY = this.imgMoveTop
       }
     },
     // 监听滚轮滚动
     mousewheelEvent (e) {
-      if (this.isMoveInCanvas) {
+      if (this.isMoveInCanvas && this.isOnlyOne) {
         e = e || window.event
         e.preventDefault()
         this.theImg.width += e.wheelDelta / 10
@@ -363,7 +371,7 @@ export default {
     },
     // 兼容火狐监听滚轮滚动
     DOMMouseScrollEvent (e) {
-      if (this.isMoveInCanvas) {
+      if (this.isMoveInCanvas && this.isOnlyOne) {
         e = e || window.event
         e.preventDefault()
         this.theImg.width -= e.detail * 4
@@ -380,11 +388,15 @@ export default {
         this.redrawImage()
       }
     },
+    // 关闭这个页面
+    closeCutBoard () {
+      document.getElementsByClassName('cut-board')[0].style.display = 'none'
+      document.getElementsByClassName('shade-floor')[0].style.display = 'none'
+    },
     // 提交剪切好的图片
     upClipImg () {
-      // 进行一个0.95左右的压缩,否则会很大(自行查找)
-      let dataURL = this.rightCanvas.toDataURL('image/jpeg', 0.95)
-      console.log(dataURL+'编辑你拿到的数据')
+      let dataURL = this.rightCanvas.toDataURL('image/jpeg', 0.95)
+      console.log(dataURL)
     }
   }
 }
@@ -478,6 +490,16 @@ export default {
       height: 3em;
       text-align: right;
       overflow: hidden;
+      i.icon-close1 {
+        font-size: 3em;
+        cursor: pointer;
+        color: #999;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      i.icon-close1:hover {
+        color: #FFF;
+        background: $lablehoverc;
+      }
     }
     .show-board {
       display: flex;
