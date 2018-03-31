@@ -38,6 +38,7 @@ export default {
       theImage: '',
       theImg: '',
       fromDragImg: '',
+      isOnlyOne: true,
       fromDrag: false,
       isCanvasShow: false,
       isHaveImg: false,
@@ -211,11 +212,13 @@ export default {
       }
     },
     mousedownEvent (e) {
-      if (e.target === this.slideBlock && this.isHaveImg) {
+      if (e.target === this.slideBlock && this.isHaveImg && this.isOnlyOne) {
+        this.isOnlyOne = false
         this.isSlideMousedown = true
         this.mouseX = e.clientX
       }
-      if (e.target === this.theCanvas && this.isHaveImg) {
+      if (e.target === this.theCanvas && this.isHaveImg && this.isOnlyOne) {
+        this.isOnlyOne = false
         this.isMousedown = true
         this.mouseX = e.clientX
         this.mouseY = e.clientY
@@ -296,19 +299,23 @@ export default {
     },
     mouseupEvent (e) {
       if (this.isHaveImg) {
-        this.isMousedown = false
-        this.imgMoveX = this.imgMoveLeft
-        this.imgMoveY = this.imgMoveTop
+        if (this.isMousedown) {
+          this.isOnlyOne = true
+          this.isMousedown = false
+        }
         if (this.isSlideMousedown) {
+          this.isOnlyOne = true
           this.isSlideMousedown = false
           this.slideFirstX = this.slideFinalX
           this.firstImgWidth = this.theImg.width
           this.firstImgHeight = this.theImg.height
         }
+        this.imgMoveX = this.imgMoveLeft
+        this.imgMoveY = this.imgMoveTop
       }
     },
     mousewheelEvent (e) {
-      if (this.isMoveInCanvas) {
+      if (this.isMoveInCanvas && this.isOnlyOne) {
         e = e || window.event
         e.preventDefault()
         this.theImg.width += e.wheelDelta / 10
@@ -326,7 +333,7 @@ export default {
       }
     },
     DOMMouseScrollEvent (e) {
-      if (this.isMoveInCanvas) {
+      if (this.isMoveInCanvas && this.isOnlyOne) {
         e = e || window.event
         e.preventDefault()
         this.theImg.width -= e.detail * 4
