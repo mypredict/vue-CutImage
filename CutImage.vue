@@ -45,6 +45,8 @@ export default {
       isMoveInCanvas: false,
       isMousedown: false,
       isSlideMousedown: false,
+      imgCenterX: 0,
+      imgCenterY: 0,
       imgWH: 0,
       mouseX: 0,
       mouseY: 0,
@@ -164,6 +166,8 @@ export default {
             this.imgMoveX = this.imgMoveLeft = (this.canvasWidth - this.theImg.width) / 2
             this.imgMoveY = this.imgMoveTop = 0
           }
+          this.imgCenterX = this.imgMoveX + this.theImg.width / 2
+          this.imgCenterY = this.imgMoveY + this.theImg.height / 2
           this.firstImgWidth = this.theImg.width
           this.firstImgHeight = this.theImg.height
           this.redrawImage()
@@ -283,12 +287,16 @@ export default {
         this.theImg.width = this.firstImgWidth + slideMoveX
         this.theImg.height = this.theImg.width / this.imgWH
         if (Math.min(this.theImg.width, this.theImg.height) < 400) {
-          if (this.imgWH > 1) {
+          if (this.imgWH >= 1) {
             this.theImg.height = 400
-            this.theImg.width = 400 * this.imgWH
+            this.firstImgWidth = this.theImg.width = 400 * this.imgWH
+            this.imgMoveX = this.imgMoveLeft = this.imgCenterX - this.theImg.width / 2
+            this.imgMoveY = this.imgMoveTop = this.imgCenterY - 200
           } else {
-            this.theImg.width = 400
+            this.firstImgWidth = this.theImg.width = 400
             this.theImg.height = 400 / this.imgWH
+            this.imgMoveX = this.imgMoveLeft = this.imgCenterX - 200
+            this.imgMoveY = this.imgMoveTop = this.imgCenterY - this.theImg.height / 2
           }
         } else {
           this.imgMoveLeft = this.imgMoveX - slideMoveX / 2
@@ -302,6 +310,8 @@ export default {
         if (this.isMousedown) {
           this.isOnlyOne = true
           this.isMousedown = false
+          this.imgCenterX = this.imgMoveLeft + this.theImg.width / 2
+          this.imgCenterY = this.imgMoveTop + this.theImg.height / 2
         }
         if (this.isSlideMousedown) {
           this.isOnlyOne = true
@@ -325,9 +335,17 @@ export default {
           this.imgMoveY = this.imgMoveTop -= e.wheelDelta / 20 / this.imgWH
           this.firstImgWidth = this.theImg.width
         } else {
-          this.theImg.width -= e.wheelDelta / 10
-          this.theImg.height = this.theImg.width / this.imgWH
-          this.firstImgWidth = this.theImg.width
+          if (this.imgWH >= 1) {
+            this.theImg.height = 400
+            this.firstImgWidth = this.theImg.width = 400 * this.imgWH
+            this.imgMoveX = this.imgMoveLeft = this.imgCenterX - this.theImg.width / 2
+            this.imgMoveY = this.imgMoveTop = this.imgCenterY - 200
+          } else {
+            this.firstImgWidth = this.theImg.width = 400
+            this.theImg.height = 400 / this.imgWH
+            this.imgMoveX = this.imgMoveLeft = this.imgCenterX - 200
+            this.imgMoveY = this.imgMoveTop = this.imgCenterY - this.theImg.height / 2
+          }
         }
         this.redrawImage()
       }
@@ -343,9 +361,17 @@ export default {
           this.imgMoveY = this.imgMoveTop += e.detail * 2 / this.imgWH
           this.firstImgWidth = this.theImg.width
         } else {
-          this.theImg.width += e.detail * 4
-          this.theImg.height = this.theImg.width / this.imgWH
-          this.firstImgWidth = this.theImg.width
+          if (this.imgWH >= 1) {
+            this.theImg.height = 400
+            this.firstImgWidth = this.theImg.width = 400 * this.imgWH
+            this.imgMoveX = this.imgMoveLeft = this.imgCenterX - this.theImg.width / 2
+            this.imgMoveY = this.imgMoveTop = this.imgCenterY - 200
+          } else {
+            this.firstImgWidth = this.theImg.width = 400
+            this.theImg.height = 400 / this.imgWH
+            this.imgMoveX = this.imgMoveLeft = this.imgCenterX - 200
+            this.imgMoveY = this.imgMoveTop = this.imgCenterY - this.theImg.height / 2
+          }
         }
         this.redrawImage()
       }
